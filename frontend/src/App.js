@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import supabase from './supabaseClient';
+
+async function getUsers() {
+  let { data, error } = await supabase.from('users').select('*');
+  console.log(data, error);
+}
+
 import { 
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, CartesianGrid

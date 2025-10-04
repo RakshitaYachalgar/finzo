@@ -362,36 +362,89 @@ const GoalForm = ({ token, onGoalCreated }) => {
     const [targetAmount, setTargetAmount] = useState('');
     const [targetDate, setTargetDate] = useState('');
     const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e) => {
+        console.log('Form submission started');
         e.preventDefault();
         setError('');
+        setIsSubmitting(true);
+        
+        console.log('Form data:', { goalName, targetAmount, targetDate, token: token ? 'present' : 'missing' });
+        
         try {
-            await axios.post('https://finzo-sigma.vercel.app/api/goals', 
+            console.log('Making API request...');
+            const response = await axios.post('https://finzo-sigma.vercel.app/api/goals', 
                 { goal_name: goalName, target_amount: targetAmount, target_date: targetDate },
                 { headers: { 'Authorization': `Bearer ${token}` } }
             );
+            console.log('API response:', response);
+            
             setGoalName('');
             setTargetAmount('');
             setTargetDate('');
             onGoalCreated();
+            setError('Goal created successfully!');
         } catch (err) {
+            console.error('API error:', err);
+            console.error('Error response:', err.response);
             setError(err.response?.data?.message || 'Failed to create goal.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     return (
         <div className="bg-gray-800 p-6 rounded-xl shadow-lg mt-8">
-            <h2 className="text-xl font-semibold mb-4">Create a New Goal</h2>
+            <h2 className="text-xl font-semibold mb-4">Create a New Goal (Debug)</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-                <input type="text" placeholder="Goal Name (e.g., Vacation Fund)" value={goalName} onChange={e => setGoalName(e.target.value)} required className="w-full px-4 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+                <input 
+                    type="text" 
+                    placeholder="Goal Name (e.g., Vacation Fund)" 
+                    value={goalName} 
+                    onChange={e => setGoalName(e.target.value)} 
+                    required 
+                    className="w-full px-4 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
                 <div className="flex space-x-4">
-                    <input type="number" step="1" placeholder="Target Amount" value={targetAmount} onChange={e => setTargetAmount(e.target.value)} required className="w-1/2 px-4 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
-                    <input type="date" value={targetDate} onChange={e => setTargetDate(e.target.value)} className="w-1/2 px-4 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+                    <input 
+                        type="number" 
+                        step="1" 
+                        placeholder="Target Amount" 
+                        value={targetAmount} 
+                        onChange={e => setTargetAmount(e.target.value)} 
+                        required 
+                        className="w-1/2 px-4 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <input 
+                        type="date" 
+                        value={targetDate} 
+                        onChange={e => setTargetDate(e.target.value)} 
+                        className="w-1/2 px-4 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
                 </div>
-                <button type="submit" className="w-full py-2 font-semibold text-white bg-green-600 rounded-md hover:bg-green-700">Set Goal</button>
+                <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className={`w-full py-2 font-semibold text-white rounded-md ${
+                        isSubmitting 
+                            ? 'bg-gray-600 cursor-not-allowed' 
+                            : 'bg-green-600 hover:bg-green-700'
+                    }`}
+                >
+                    {isSubmitting ? 'Creating Goal...' : 'Set Goal'}
+                </button>
             </form>
-            {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+            {error && <p className="mt-4 text-sm text-green-400">{error}</p>}
+            
+            {/* Debug info */}
+            <div className="mt-4 p-2 bg-gray-700 rounded text-xs">
+                <p>Debug Info:</p>
+                <p>Goal Name: {goalName || 'empty'}</p>
+                <p>Target Amount: {targetAmount || 'empty'}</p>
+                <p>Target Date: {targetDate || 'empty'}</p>
+                <p>Token: {token ? 'present' : 'missing'}</p>
+            </div>
         </div>
     );
 };

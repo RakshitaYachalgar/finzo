@@ -491,9 +491,9 @@ const GoalItem = ({ goal, token, onGoalUpdated, onGoalDeleted }) => {
         <div className="bg-gray-800 p-6 rounded-xl shadow-lg">
             <div className="flex justify-between items-start">
                 <div>
-                    <h3 className="text-xl font-bold">{goal.goal_name}</h3>
+                    <h3 className="text-xl font-bold">{goal.title || goal.goal_name}</h3>
                     <p className="text-green-400 font-semibold">${parseFloat(goal.current_amount).toLocaleString()} / <span className="text-gray-400">${parseFloat(goal.target_amount).toLocaleString()}</span></p>
-                    {goal.target_date && <p className="text-sm text-gray-500">Target: {new Date(goal.target_date).toLocaleDateString()}</p>}
+                    {(goal.target_date || goal.deadline) && <p className="text-sm text-gray-500">Target: {new Date(goal.target_date || goal.deadline).toLocaleDateString()}</p>}
                 </div>
                 <button onClick={handleDelete} className="text-gray-500 hover:text-red-400 text-2xl leading-none">&times;</button>
             </div>

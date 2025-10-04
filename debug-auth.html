@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Authentication</title>
+</head>
+<body>
+    <h1>Authentication Debug Tool</h1>
+    
+    <div>
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username" value="testuser">
+        <input type="password" id="password" placeholder="Password" value="testpass">
+        <button onclick="login()">Login</button>
+    </div>
+    
+    <div>
+        <h2>Test Goals API</h2>
+        <button onclick="testGoals()">Test Goals API</button>
+    </div>
+    
+    <div>
+        <h2>Results</h2>
+        <pre id="results"></pre>
+    </div>
+
+    <script>
+        let token = null;
+        
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('https://finzo-sigma.vercel.app/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                document.getElementById('results').textContent = 'Login Response:\n' + JSON.stringify(data, null, 2);
+                
+                if (data.token) {
+                    token = data.token;
+                    console.log('Token stored:', token);
+                }
+            } catch (error) {
+                document.getElementById('results').textContent = 'Login Error:\n' + error.message;
+            }
+        }
+        
+        async function testGoals() {
+            if (!token) {
+                document.getElementById('results').textContent = 'No token available. Please login first.';
+                return;
+            }
+            
+            try {
+                const response = await fetch('https://finzo-sigma.vercel.app/api/goals', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                document.getElementById('results').textContent = 'Goals Response:\n' + JSON.stringify(data, null, 2);
+                
+                console.log('Goals response status:', response.status);
+                console.log('Goals response data:', data);
+            } catch (error) {
+                document.getElementById('results').textContent = 'Goals Error:\n' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

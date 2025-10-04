@@ -55,7 +55,7 @@ const Auth = ({ setToken }) => {
     
     if (isLogin) {
       try {
-        const response = await axios.post(`https://finzo-sigma.vercel.app//api/auth/login`, { username, password });
+        const response = await axios.post(`https://finzo-sigma.vercel.app/api/auth/login`, { username, password });
         setToken(response.data.token);
         localStorage.setItem('token', response.data.token);
       } catch (err) {

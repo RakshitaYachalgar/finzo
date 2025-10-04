@@ -1,8 +1,17 @@
 -- Complete Financial Dashboard Schema for Supabase
 -- Modified to work with Supabase Auth (auth.users table)
 
--- Drop existing profiles table if it has wrong data types
+-- Drop existing tables if they exist (clean slate approach)
+DROP TABLE IF EXISTS organization_categories CASCADE;
+DROP TABLE IF EXISTS user_budgets CASCADE;
+DROP TABLE IF EXISTS invitations CASCADE;
+DROP TABLE IF EXISTS liabilities CASCADE;
+DROP TABLE IF EXISTS assets CASCADE;
+DROP TABLE IF EXISTS goals CASCADE;
+DROP TABLE IF EXISTS transactions CASCADE;
+DROP TABLE IF EXISTS organization_users CASCADE;
 DROP TABLE IF EXISTS profiles CASCADE;
+DROP TABLE IF EXISTS organizations CASCADE;
 
 -- Create profiles table (extends Supabase auth.users)
 CREATE TABLE profiles (

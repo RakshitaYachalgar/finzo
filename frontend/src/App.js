@@ -55,7 +55,7 @@ const Auth = ({ setToken }) => {
     
     if (isLogin) {
       try {
-        const response = await axios.post(`http://localhost:5000/api/auth/login`, { username, password });
+        const response = await axios.post(`https://finzo-sigma.vercel.app//api/auth/login`, { username, password });
         setToken(response.data.token);
         localStorage.setItem('token', response.data.token);
       } catch (err) {
@@ -65,7 +65,7 @@ const Auth = ({ setToken }) => {
       }
     } else {
       try {
-        const response = await axios.post(`http://localhost:5000/api/auth/register`, { username, password, accountType });
+        const response = await axios.post(`https://finzo-sigma.vercel.app/api/auth/register`, { username, password, accountType });
         setMessage(response.data.message || 'User registered successfully! Please switch to login.');
         setIsLogin(true);
       } catch (err) {
@@ -145,7 +145,7 @@ const ManualTransactionForm = ({ token, onTransactionAdded }) => {
         }
 
         try {
-            await axios.post('http://localhost:5000/api/transactions/add', 
+            await axios.post('https://finzo-sigma.vercel.app/api/transactions/add', 
               { description, amount: finalAmount, date }, 
               { headers: { 'Authorization': `Bearer ${token}` } }
             );
@@ -207,7 +207,7 @@ const FileUpload = ({ token, onUploadSuccess }) => {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const response = await axios.post('http://localhost:5000/api/transactions/upload', formData, { 
+      const response = await axios.post('https://finzo-sigma.vercel.app/api/transactions/upload', formData, { 
           headers: { 
               'Content-Type': 'multipart/form-data', 
               'Authorization': `Bearer ${token}` 
@@ -279,7 +279,7 @@ const Prediction = ({ token }) => {
     const handleGetPrediction = async () => {
         setIsLoading(true); setError(''); setPrediction(null);
         try {
-            const response = await axios.get('http://localhost:5000/api/transactions/predict', { headers: { 'Authorization': `Bearer ${token}` } });
+            const response = await axios.get('https://finzo-sigma.vercel.app/api/transactions/predict', { headers: { 'Authorization': `Bearer ${token}` } });
             setPrediction(response.data.predicted_expenses);
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to get prediction.');
@@ -367,7 +367,7 @@ const GoalForm = ({ token, onGoalCreated }) => {
         e.preventDefault();
         setError('');
         try {
-            await axios.post('http://localhost:5000/api/goals', 
+            await axios.post('https://finzo-sigma.vercel.app/api/goals', 
                 { goal_name: goalName, target_amount: targetAmount, target_date: targetDate },
                 { headers: { 'Authorization': `Bearer ${token}` } }
             );
@@ -403,7 +403,7 @@ const GoalItem = ({ goal, token, onGoalUpdated, onGoalDeleted }) => {
     const handleAddFunds = async () => {
         if (!addAmount || parseFloat(addAmount) <= 0) return;
         try {
-            await axios.put(`http://localhost:5000/api/goals/${goal.goal_id}`, 
+            await axios.put(`https://finzo-sigma.vercel.app/api/goals/${goal.goal_id}`, 
                 { add_amount: addAmount }, 
                 { headers: { 'Authorization': `Bearer ${token}` } }
             );
@@ -417,7 +417,7 @@ const GoalItem = ({ goal, token, onGoalUpdated, onGoalDeleted }) => {
     const handleDelete = async () => {
         if(window.confirm("Are you sure you want to delete this goal?")) {
             try {
-                await axios.delete(`http://localhost:5000/api/goals/${goal.goal_id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                await axios.delete(`https://finzo-sigma.vercel.app/api/goals/${goal.goal_id}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 onGoalDeleted();
             } catch (error) {
                 console.error("Failed to delete goal:", error);
@@ -454,7 +454,7 @@ const AnomalyDetector = ({ token }) => {
     const handleDetectAnomalies = async () => {
         setIsLoading(true); setError(''); setAnomalies([]);
         try {
-            const response = await axios.get('http://localhost:5000/api/transactions/anomalies', { headers: { 'Authorization': `Bearer ${token}` } });
+            const response = await axios.get('https://finzo-sigma.vercel.app/transactions/anomalies', { headers: { 'Authorization': `Bearer ${token}` } });
             setAnomalies(response.data.anomalies);
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to detect anomalies.');
@@ -510,7 +510,7 @@ const NetWorthForm = ({ type, token, onUpdate }) => {
             : { liability_name: name, liability_type: itemType, amount_owed: value };
         
         try {
-            await axios.post(`http://localhost:5000${endpoint}`, payload, { headers: { 'Authorization': `Bearer ${token}` } });
+            await axios.post(`https://finzo-sigma.vercel.app/${endpoint}`, payload, { headers: { 'Authorization': `Bearer ${token}` } });
             setName('');
             setItemType('');
             setValue('');
@@ -542,7 +542,7 @@ const NetWorthList = ({ title, items, type, token, onUpdate }) => {
         if (!window.confirm(`Are you sure you want to delete this ${type}?`)) return;
         const endpoint = isAsset ? `/api/net-worth/assets/${id}` : `/api/net-worth/liabilities/${id}`;
         try {
-            await axios.delete(`http://localhost:5000${endpoint}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            await axios.delete(`https://finzo-sigma.vercel.app/${endpoint}`, { headers: { 'Authorization': `Bearer ${token}` } });
             onUpdate();
         } catch (err) {
             console.error(`Failed to delete ${type}:`, err);
@@ -646,7 +646,7 @@ const BudgetsView = ({ token }) => {
     const fetchBudgets = useCallback(async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get('http://localhost:5000/api/budgets', { headers: { Authorization: `Bearer ${token}` } });
+            const response = await axios.get('https://finzo-sigma.vercel.app/api/budgets', { headers: { Authorization: `Bearer ${token}` } });
             setBudgets(response.data);
         } catch (error) {
             console.error("Failed to fetch budgets", error);
@@ -665,7 +665,7 @@ const BudgetsView = ({ token }) => {
 
     const handleSaveBudgets = async () => {
         try {
-            await axios.post('http://localhost:5000/api/budgets', { budgets }, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.post('https://finzo-sigma.vercel.app/api/budgets', { budgets }, { headers: { Authorization: `Bearer ${token}` } });
             setMessage('Budgets saved successfully!');
             setTimeout(() => setMessage(''), 3000);
         } catch (error) {
@@ -710,12 +710,12 @@ const BudgetAnalysis = ({ token, summaryData }) => {
     const handleGetAnalysis = async () => {
         setIsLoading(true); setError(''); setAnalysis(null);
         try {
-            const budgetResponse = await axios.get('http://localhost:5000/api/budgets', { headers: { 'Authorization': `Bearer ${token}` } });
+            const budgetResponse = await axios.get('https://finzo-sigma.vercel.app/api/budgets', { headers: { 'Authorization': `Bearer ${token}` } });
             const payload = {
                 spending: summaryData,
                 budgets: budgetResponse.data
             };
-            const response = await axios.post('http://localhost:5000/api/transactions/recommend_budget', payload, { headers: { 'Authorization': `Bearer ${token}` } });
+            const response = await axios.post('https://finzo-sigma.vercel.app/api/transactions/recommend_budget', payload, { headers: { 'Authorization': `Bearer ${token}` } });
             setAnalysis(response.data);
         } catch (err) { setError(err.response?.data?.message || 'Failed to get analysis.'); } finally { setIsLoading(false); }
     };
@@ -785,7 +785,7 @@ const ProfileView = ({ token }) => {
     const fetchProfile = useCallback(async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get('http://localhost:5000/api/profile', {
+            const response = await axios.get('https://finzo-sigma.vercel.app/api/profile', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             setProfile(response.data);
@@ -809,7 +809,7 @@ const ProfileView = ({ token }) => {
         e.preventDefault();
         setMessage('');
         try {
-            await axios.put('http://localhost:5000/api/profile', {
+            await axios.put('https://finzo-sigma.vercel.app/api/profile', {
                 fullName: profile.full_name,
                 currency: profile.currency,
                 avatarUrl: profile.avatar_url
@@ -899,7 +899,7 @@ const GoalsView = ({ token }) => {
     
     const fetchGoals = useCallback(async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/goals', { headers: { 'Authorization': `Bearer ${token}` } });
+            const response = await axios.get('https://finzo-sigma.vercel.app/api/goals', { headers: { 'Authorization': `Bearer ${token}` } });
             setGoals(response.data);
         } catch (error) {
             console.error("Failed to fetch goals", error);
@@ -929,8 +929,8 @@ const NetWorthView = ({ token }) => {
     const fetchNetWorthData = useCallback(async () => {
         try {
             const [assetsRes, liabilitiesRes] = await Promise.all([
-                axios.get('http://localhost:5000/api/net-worth/assets', { headers: { 'Authorization': `Bearer ${token}` } }),
-                axios.get('http://localhost:5000/api/net-worth/liabilities', { headers: { 'Authorization': `Bearer ${token}` } })
+                axios.get('https://finzo-sigma.vercel.app/api/net-worth/assets', { headers: { 'Authorization': `Bearer ${token}` } }),
+                axios.get('https://finzo-sigma.vercel.app/api/net-worth/liabilities', { headers: { 'Authorization': `Bearer ${token}` } })
             ]);
             setAssets(assetsRes.data);
             setLiabilities(liabilitiesRes.data);
@@ -980,7 +980,7 @@ const TeamManagementView = ({ token }) => {
     const fetchMembers = useCallback(async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get('http://localhost:5000/api/organizations/members', {
+            const response = await axios.get('https://finzo-sigma.vercel.app/api/organizations/members', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             setMembers(response.data);
@@ -1000,7 +1000,7 @@ const TeamManagementView = ({ token }) => {
         setMessage('');
         setError('');
         try {
-            const response = await axios.post('http://localhost:5000/api/organizations/invite', 
+            const response = await axios.post('https://finzo-sigma.vercel.app/api/organizations/invite', 
                 { email: inviteEmail, role: 'Member' },
                 { headers: { 'Authorization': `Bearer ${token}` } }
             );
@@ -1094,8 +1094,8 @@ const PersonalDashboard = ({ token, setToken }) => {
     setIsLoading(true);
     try {
       const [summaryRes, historyRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/transactions/summary', { headers: { 'Authorization': `Bearer ${token}` } }),
-        axios.get('http://localhost:5000/api/transactions/history', { headers: { 'Authorization': `Bearer ${token}` } })
+        axios.get('https://finzo-sigma.vercel.app/api/transactions/summary', { headers: { 'Authorization': `Bearer ${token}` } }),
+        axios.get('https://finzo-sigma.vercel.app/api/transactions/history', { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
       setSummaryData(summaryRes.data);
       setHistoricalData(historyRes.data);
@@ -1153,8 +1153,8 @@ const BusinessDashboard = ({ token, setToken, userPayload }) => {
     setIsLoading(true);
     try {
       const [summaryRes, historyRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/transactions/summary', { headers: { 'Authorization': `Bearer ${token}` } }),
-        axios.get('http://localhost:5000/api/transactions/history', { headers: { 'Authorization': `Bearer ${token}` } })
+        axios.get('https://finzo-sigma.vercel.app/api/transactions/summary', { headers: { 'Authorization': `Bearer ${token}` } }),
+        axios.get('https://finzo-sigma.vercel.app/api/transactions/history', { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
       setSummaryData(summaryRes.data);
       setHistoricalData(historyRes.data);

@@ -14,6 +14,17 @@ const supabaseClient = createClient(
 );
 
 async function goalsHandler(req, res) {
+    // Set CORS headers for all requests
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
+    }
+    
     if (req.method === 'GET') {
         try {
             const userId = req.user.id;
@@ -59,7 +70,11 @@ async function goalsHandler(req, res) {
     }
     else if (req.method === 'POST') {
         // Create goal
-        const { title, target_amount, deadline, category } = req.body;
+        const { goal_name, target_amount, target_date, title, deadline, category } = req.body;
+        
+        // Support both old and new field names for compatibility
+        const goalName = goal_name || title;
+        const goalDate = target_date || deadline;
         try {
             const userId = req.user.id;
             
@@ -80,10 +95,10 @@ async function goalsHandler(req, res) {
                 .from('goals')
                 .insert([{
                     user_id: userId,
-                    goal_name: title,
+                    goal_name: goalName,
                     target_amount: parseFloat(target_amount),
                     current_amount: 0,
-                    target_date: deadline,
+                    target_date: goalDate,
                     status: category || 'In-Progress'
                 }])
                 .select()

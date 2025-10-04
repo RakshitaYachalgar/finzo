@@ -91,7 +91,16 @@ async function goalsHandler(req, res) {
                 }
             );
             
-            const { data: newGoal, error } = await userSupabase
+            console.log('Attempting to insert goal:', {
+                user_id: userId,
+                goal_name: goalName,
+                target_amount: parseFloat(target_amount),
+                current_amount: 0,
+                target_date: goalDate,
+                status: category || 'In-Progress'
+            });
+
+            const { data: insertResult, error: insertError } = await userSupabase
                 .from('goals')
                 .insert([{
                     user_id: userId,
@@ -101,12 +110,30 @@ async function goalsHandler(req, res) {
                     target_date: goalDate,
                     status: category || 'In-Progress'
                 }])
-                .select()
-                .single();
+                .select();
 
-            if (error) {
-                throw error;
+            console.log('Insert result:', insertResult);
+            console.log('Insert error:', insertError);
+
+            if (insertError) {
+                throw insertError;
             }
+
+            if (!insertResult || insertResult.length === 0) {
+                throw new Error('No data returned from insert - possible RLS policy issue');
+            }
+
+            const newGoal = insertResult[0];
+            
+            // Verify the goal was actually created by fetching it
+            const { data: verifyGoal, error: verifyError } = await userSupabase
+                .from('goals')
+                .select('*')
+                .eq('goal_id', newGoal.goal_id)
+                .single();
+                
+            console.log('Verification query result:', verifyGoal);
+            console.log('Verification query error:', verifyError);
             
             res.status(201).json({ 
                 message: 'Goal created successfully.', 
@@ -117,6 +144,10 @@ async function goalsHandler(req, res) {
                     current_amount: parseFloat(newGoal.current_amount),
                     deadline: newGoal.target_date,
                     category: newGoal.status
+                },
+                debug: {
+                    inserted: !!newGoal,
+                    verified: !!verifyGoal
                 }
             });
         } catch (error) {

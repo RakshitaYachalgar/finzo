@@ -121,6 +121,80 @@ async function goalsHandler(req, res) {
             });
         }
     }
+    else if (req.method === 'PUT') {
+        // Update goal (add funds)
+        const { amount } = req.body;
+        try {
+            const userId = req.user.id;
+            const goalId = req.query.id || req.url.split('/').pop(); // Get goal ID from URL
+            
+            // Use client with user's JWT token for RLS
+            const userSupabase = createClient(
+                process.env.SUPABASE_URL,
+                process.env.SUPABASE_ANON_KEY,
+                {
+                    global: {
+                        headers: {
+                            Authorization: req.headers.authorization
+                        }
+                    }
+                }
+            );
+            
+            // First get the current goal to add to existing amount
+            const { data: currentGoal, error: fetchError } = await userSupabase
+                .from('goals')
+                .select('current_amount')
+                .eq('goal_id', goalId)
+                .eq('user_id', userId)
+                .single();
+                
+            if (fetchError) {
+                throw fetchError;
+            }
+            
+            const newAmount = parseFloat(currentGoal.current_amount) + parseFloat(amount);
+            
+            const { data: updatedGoal, error } = await userSupabase
+                .from('goals')
+                .update({ current_amount: newAmount })
+                .eq('goal_id', goalId)
+                .eq('user_id', userId)
+                .select()
+                .single();
+
+            if (error) {
+                throw error;
+            }
+            
+            res.status(200).json({ 
+                message: 'Goal updated successfully.', 
+                goal: {
+                    goal_id: updatedGoal.goal_id,
+                    title: updatedGoal.goal_name,
+                    target_amount: parseFloat(updatedGoal.target_amount),
+                    current_amount: parseFloat(updatedGoal.current_amount),
+                    deadline: updatedGoal.target_date,
+                    category: updatedGoal.status
+                }
+            });
+        } catch (error) {
+            console.error('Update Goal Error:', error);
+            console.error('Error details:', {
+                message: error.message,
+                code: error.code,
+                details: error.details,
+                hint: error.hint,
+                userId: req.user?.id,
+                requestBody: req.body
+            });
+            res.status(500).json({ 
+                message: 'Server error while updating goal.',
+                error: error.message,
+                details: error.details 
+            });
+        }
+    }
     else {
         res.status(405).json({ message: 'Method not allowed' });
     }

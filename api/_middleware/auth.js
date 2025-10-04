@@ -31,7 +31,15 @@ const authenticateToken = async (req, res, next) => {
         next();
     } catch (err) {
         console.error('Token verification error:', err);
-        return res.status(403).json({ message: 'Token verification failed.' });
+        console.error('Auth error details:', {
+            message: err.message,
+            token: token ? 'present' : 'missing',
+            authHeader: req.headers.authorization ? 'present' : 'missing'
+        });
+        return res.status(403).json({ 
+            message: 'Token verification failed.',
+            error: err.message 
+        });
     }
 };
 

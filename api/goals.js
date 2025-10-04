@@ -74,7 +74,19 @@ async function goalsHandler(req, res) {
             });
         } catch (error) {
             console.error('Create Goal Error:', error);
-            res.status(500).json({ message: 'Server error while creating goal.' });
+            console.error('Error details:', {
+                message: error.message,
+                code: error.code,
+                details: error.details,
+                hint: error.hint,
+                userId: req.user?.id,
+                requestBody: req.body
+            });
+            res.status(500).json({ 
+                message: 'Server error while creating goal.',
+                error: error.message,
+                details: error.details 
+            });
         }
     }
     else {

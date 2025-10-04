@@ -1,5 +1,11 @@
 // /api/_middleware/auth.js - Supabase Authentication middleware for Vercel Functions
-const { supabase } = require('../_config/db');
+const { createClient } = require('@supabase/supabase-js');
+
+// Create service role client for authentication verification
+const supabaseAdmin = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 const authenticateToken = async (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -10,8 +16,8 @@ const authenticateToken = async (req, res, next) => {
     }
     
     try {
-        // Verify the Supabase JWT token
-        const { data: { user }, error } = await supabase.auth.getUser(token);
+        // Verify the Supabase JWT token using service role
+        const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
         
         if (error || !user) {
             return res.status(403).json({ message: 'Invalid or expired token.' });

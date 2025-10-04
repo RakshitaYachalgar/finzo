@@ -380,10 +380,16 @@ const GoalForm = ({ token, onGoalCreated }) => {
             );
             console.log('API response:', response);
             
+            // Clear form
             setGoalName('');
             setTargetAmount('');
             setTargetDate('');
-            onGoalCreated();
+            
+            // Refresh goals list
+            if (onGoalCreated) {
+                await onGoalCreated();
+            }
+            
             setError('Goal created successfully!');
         } catch (err) {
             console.error('API error:', err);

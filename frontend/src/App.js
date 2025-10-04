@@ -961,20 +961,30 @@ const GoalsView = ({ token }) => {
     const [isRefreshing, setIsRefreshing] = useState(false);
     
     const fetchGoals = useCallback(async () => {
-        console.log('fetchGoals called');
+        console.log('🚀 fetchGoals called');
         setIsRefreshing(true);
         try {
             const response = await axios.get('https://finzo-sigma.vercel.app/api/goals', { headers: { 'Authorization': `Bearer ${token}` } });
-            console.log('Goals API response:', response);
-            console.log('Goals data:', response.data);
-            console.log('Goals array length:', response.data?.length);
-            console.log('Individual goals:', response.data);
+            console.log('📡 Goals API response:', response);
+            console.log('📊 Goals data:', response.data);
+            console.log('📈 Goals array length:', response.data?.length);
+            console.log('🎯 Individual goals:', response.data);
+            
+            // Force update with explicit logging
+            console.log('🔄 Setting goals state...');
             setGoals(response.data || []);
+            console.log('✅ Goals state set completed');
+            
+            // Store in window for debugging
+            window.debugGoals = response.data;
+            console.log('🔍 Debug goals stored in window.debugGoals');
+            
         } catch (error) {
-            console.error("Failed to fetch goals", error);
+            console.error("❌ Failed to fetch goals", error);
             setGoals([]);
         } finally {
             setIsRefreshing(false);
+            console.log('🏁 fetchGoals completed');
         }
     }, [token]);
 
@@ -995,9 +1005,16 @@ const GoalsView = ({ token }) => {
                 </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="mb-4 p-2 bg-gray-700 rounded text-xs">
-                    <p>Debug: Goals array length: {goals?.length || 0}</p>
+                <div className="mb-4 p-2 bg-red-600 rounded text-xs text-white">
+                    <p><strong>🐛 DEBUG INFO:</strong></p>
+                    <p>Goals array length: {goals?.length || 0}</p>
+                    <p>Goals type: {typeof goals}</p>
+                    <p>Is array: {Array.isArray(goals) ? 'YES' : 'NO'}</p>
+                    <p>Token present: {token ? 'YES' : 'NO'}</p>
                     <p>Goals data: {JSON.stringify(goals)}</p>
+                    <button onClick={fetchGoals} className="mt-2 px-2 py-1 bg-white text-black rounded">
+                        Force Refresh
+                    </button>
                 </div>
                 {goals && goals.length > 0 ? (
                     goals.map(goal => (
@@ -1005,7 +1022,8 @@ const GoalsView = ({ token }) => {
                     ))
                 ) : (
                     <div className="col-span-3 text-center text-gray-400 py-8">
-                        <p>No goals found. Create your first goal below!</p>
+                        <p>❌ No goals found in React state!</p>
+                        <p>But API returns data correctly (check console)</p>
                     </div>
                 )}
             </div>

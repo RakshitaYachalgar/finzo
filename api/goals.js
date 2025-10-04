@@ -2,9 +2,15 @@
 const { createClient } = require('@supabase/supabase-js');
 const { withAuth } = require('./_middleware/auth');
 
-const supabase = createClient(
+// Create both service role client and user client
+const supabaseAdmin = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+const supabaseClient = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
 );
 
 async function goalsHandler(req, res) {
@@ -12,7 +18,20 @@ async function goalsHandler(req, res) {
         try {
             const userId = req.user.id;
             
-            const { data: goals, error } = await supabase
+            // Use client with user's JWT token for RLS
+            const userSupabase = createClient(
+                process.env.SUPABASE_URL,
+                process.env.SUPABASE_ANON_KEY,
+                {
+                    global: {
+                        headers: {
+                            Authorization: req.headers.authorization
+                        }
+                    }
+                }
+            );
+            
+            const { data: goals, error } = await userSupabase
                 .from('goals')
                 .select('goal_id, goal_name, target_amount, current_amount, target_date, status')
                 .eq('user_id', userId)
@@ -44,7 +63,20 @@ async function goalsHandler(req, res) {
         try {
             const userId = req.user.id;
             
-            const { data: newGoal, error } = await supabase
+            // Use client with user's JWT token for RLS
+            const userSupabase = createClient(
+                process.env.SUPABASE_URL,
+                process.env.SUPABASE_ANON_KEY,
+                {
+                    global: {
+                        headers: {
+                            Authorization: req.headers.authorization
+                        }
+                    }
+                }
+            );
+            
+            const { data: newGoal, error } = await userSupabase
                 .from('goals')
                 .insert([{
                     user_id: userId,

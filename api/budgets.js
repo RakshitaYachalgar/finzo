@@ -2,9 +2,15 @@
 const { createClient } = require('@supabase/supabase-js');
 const { withAuth } = require('./_middleware/auth');
 
-const supabase = createClient(
+// Create both service role client and user client
+const supabaseAdmin = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+const supabaseClient = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
 );
 
 async function budgetsHandler(req, res) {
@@ -12,8 +18,21 @@ async function budgetsHandler(req, res) {
         try {
             const userId = req.user.id;
             
+            // Use client with user's JWT token for RLS
+            const userSupabase = createClient(
+                process.env.SUPABASE_URL,
+                process.env.SUPABASE_ANON_KEY,
+                {
+                    global: {
+                        headers: {
+                            Authorization: req.headers.authorization
+                        }
+                    }
+                }
+            );
+            
             // Get user budgets
-            const { data: budgets, error: budgetsError } = await supabase
+            const { data: budgets, error: budgetsError } = await userSupabase
                 .from('user_budgets')
                 .select('budget_id, category_name, budget_amount')
                 .eq('user_id', userId);
@@ -68,7 +87,20 @@ async function budgetsHandler(req, res) {
         try {
             const userId = req.user.id;
             
-            const { data: newBudget, error } = await supabase
+            // Use client with user's JWT token for RLS  
+            const userSupabase = createClient(
+                process.env.SUPABASE_URL,
+                process.env.SUPABASE_ANON_KEY,
+                {
+                    global: {
+                        headers: {
+                            Authorization: req.headers.authorization
+                        }
+                    }
+                }
+            );
+            
+            const { data: newBudget, error } = await userSupabase
                 .from('user_budgets')
                 .insert([{
                     user_id: userId,

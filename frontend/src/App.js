@@ -380,17 +380,27 @@ const GoalForm = ({ token, onGoalCreated }) => {
             );
             console.log('API response:', response);
             
-            // Clear form
-            setGoalName('');
-            setTargetAmount('');
-            setTargetDate('');
-            
-            // Refresh goals list
-            if (onGoalCreated) {
-                await onGoalCreated();
+            if (response.status === 201 || response.status === 200) {
+                // Clear form immediately
+                setGoalName('');
+                setTargetAmount('');
+                setTargetDate('');
+                
+                // Show success message
+                setError('✅ Goal created successfully!');
+                
+                // Force refresh goals list
+                if (onGoalCreated) {
+                    console.log('Calling onGoalCreated...');
+                    await onGoalCreated();
+                    console.log('onGoalCreated completed');
+                }
+                
+                // Also reload page as backup after 2 seconds
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
             }
-            
-            setError('Goal created successfully!');
         } catch (err) {
             console.error('API error:', err);
             console.error('Error response:', err.response);
@@ -955,13 +965,19 @@ const ProfileView = ({ token }) => {
 
 const GoalsView = ({ token }) => {
     const [goals, setGoals] = useState([]);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     
     const fetchGoals = useCallback(async () => {
+        console.log('fetchGoals called');
+        setIsRefreshing(true);
         try {
             const response = await axios.get('https://finzo-sigma.vercel.app/api/goals', { headers: { 'Authorization': `Bearer ${token}` } });
+            console.log('Goals fetched:', response.data);
             setGoals(response.data);
         } catch (error) {
             console.error("Failed to fetch goals", error);
+        } finally {
+            setIsRefreshing(false);
         }
     }, [token]);
 
@@ -971,6 +987,16 @@ const GoalsView = ({ token }) => {
 
     return (
         <div>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold">Goals</h1>
+                <button 
+                    onClick={fetchGoals}
+                    disabled={isRefreshing}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                >
+                    {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                </button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {goals.map(goal => (
                     <GoalItem key={goal.goal_id} goal={goal} token={token} onGoalUpdated={fetchGoals} onGoalDeleted={fetchGoals}/>

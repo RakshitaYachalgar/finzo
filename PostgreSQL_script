@@ -1,0 +1,110 @@
+-- Create the 'users' table with all fields
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    active_organization_id INTEGER, -- Can be NULL for personal accounts
+    full_name VARCHAR(255),
+    currency VARCHAR(10) DEFAULT 'USD',
+    avatar_url TEXT
+);
+
+-- Create the 'organizations' table
+CREATE TABLE organizations (
+    organization_id SERIAL PRIMARY KEY,
+    org_name VARCHAR(255) NOT NULL,
+    owner_id INTEGER NOT NULL REFERENCES users(user_id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Add foreign key constraint back to users table now that organizations exists
+ALTER TABLE users ADD CONSTRAINT fk_active_organization
+FOREIGN KEY (active_organization_id) REFERENCES organizations(organization_id);
+
+-- Create the linking table for users, organizations, and their roles
+CREATE TABLE organization_users (
+    org_user_id SERIAL PRIMARY KEY,
+    organization_id INTEGER NOT NULL REFERENCES organizations(organization_id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    role VARCHAR(50) NOT NULL DEFAULT 'Member',
+    UNIQUE(organization_id, user_id)
+);
+
+-- Create the 'transactions' table, now organization-aware
+CREATE TABLE transactions (
+    transaction_id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    organization_id INTEGER REFERENCES organizations(organization_id) ON DELETE CASCADE,
+    transaction_date DATE NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    amount DECIMAL(12, 2) NOT NULL,
+    category VARCHAR(100) DEFAULT 'Uncategorized',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create the 'goals' table, now organization-aware
+CREATE TABLE goals (
+    goal_id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    organization_id INTEGER REFERENCES organizations(organization_id) ON DELETE CASCADE,
+    goal_name VARCHAR(255) NOT NULL,
+    target_amount DECIMAL(12, 2) NOT NULL,
+    current_amount DECIMAL(12, 2) DEFAULT 0.00,
+    target_date DATE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(50) DEFAULT 'In-Progress'
+);
+
+-- Create the 'assets' table, now organization-aware
+CREATE TABLE assets (
+    asset_id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    organization_id INTEGER REFERENCES organizations(organization_id) ON DELETE CASCADE,
+    asset_name VARCHAR(255) NOT NULL,
+    asset_type VARCHAR(100),
+    value DECIMAL(12, 2) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create the 'liabilities' table, now organization-aware
+CREATE TABLE liabilities (
+    liability_id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    organization_id INTEGER REFERENCES organizations(organization_id) ON DELETE CASCADE,
+    liability_name VARCHAR(255) NOT NULL,
+    liability_type VARCHAR(100),
+    amount_owed DECIMAL(12, 2) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create the 'invitations' table for business teams
+CREATE TABLE invitations (
+    invitation_id SERIAL PRIMARY KEY,
+    organization_id INTEGER NOT NULL REFERENCES organizations(organization_id) ON DELETE CASCADE,
+    email VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL DEFAULT 'Member',
+    status VARCHAR(50) DEFAULT 'Pending',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(organization_id, email)
+);
+
+-- Create the 'user_budgets' table for custom budgets
+CREATE TABLE user_budgets (
+    budget_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    organization_id INTEGER REFERENCES organizations(organization_id) ON DELETE CASCADE,
+    category_name VARCHAR(100) NOT NULL,
+    budget_amount DECIMAL(12, 2) NOT NULL,
+    CONSTRAINT unique_user_category UNIQUE (user_id, category_name),
+    CONSTRAINT unique_org_category UNIQUE (organization_id, category_name)
+);
+
+-- Create the 'organization_categories' table for custom business categories
+CREATE TABLE organization_categories (
+    category_id SERIAL PRIMARY KEY,
+    organization_id INTEGER NOT NULL REFERENCES organizations(organization_id) ON DELETE CASCADE,
+    category_name VARCHAR(255) NOT NULL,
+    keywords TEXT[],
+    UNIQUE(organization_id, category_name)
+);

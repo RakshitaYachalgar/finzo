@@ -972,10 +972,14 @@ const GoalsView = ({ token }) => {
         setIsRefreshing(true);
         try {
             const response = await axios.get('https://finzo-sigma.vercel.app/api/goals', { headers: { 'Authorization': `Bearer ${token}` } });
-            console.log('Goals fetched:', response.data);
-            setGoals(response.data);
+            console.log('Goals API response:', response);
+            console.log('Goals data:', response.data);
+            console.log('Goals array length:', response.data?.length);
+            console.log('Individual goals:', response.data);
+            setGoals(response.data || []);
         } catch (error) {
             console.error("Failed to fetch goals", error);
+            setGoals([]);
         } finally {
             setIsRefreshing(false);
         }
@@ -998,9 +1002,19 @@ const GoalsView = ({ token }) => {
                 </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {goals.map(goal => (
-                    <GoalItem key={goal.goal_id} goal={goal} token={token} onGoalUpdated={fetchGoals} onGoalDeleted={fetchGoals}/>
-                ))}
+                <div className="mb-4 p-2 bg-gray-700 rounded text-xs">
+                    <p>Debug: Goals array length: {goals?.length || 0}</p>
+                    <p>Goals data: {JSON.stringify(goals)}</p>
+                </div>
+                {goals && goals.length > 0 ? (
+                    goals.map(goal => (
+                        <GoalItem key={goal.goal_id} goal={goal} token={token} onGoalUpdated={fetchGoals} onGoalDeleted={fetchGoals}/>
+                    ))
+                ) : (
+                    <div className="col-span-3 text-center text-gray-400 py-8">
+                        <p>No goals found. Create your first goal below!</p>
+                    </div>
+                )}
             </div>
             <GoalForm token={token} onGoalCreated={fetchGoals} />
         </div>
